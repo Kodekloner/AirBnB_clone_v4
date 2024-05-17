@@ -1,38 +1,47 @@
-$(document).ready(function () {
-  const amenities = {};
-  $('input[type="checkbox"]').click(function () {
-    const amenityId = $(this).attr('data-id');
-    const amenityName = $(this).attr('data-name');
-    if ($(this).prop('checked') === true) {
-      amenities[amenityId] = amenityName;
-    } else if ($(this).prop('checked') === false) {
-      delete amenities[amenityId];
+// This code will be executed once the DOM is ready
+$(document).ready(init);
+
+// The host URL for the API
+const HOST = '0.0.0.0';
+
+// Initialization function
+function init() {
+  // An object to store selected amenities
+  const amenityObj = {};
+
+  // Listen for changes on checkboxes inside the ".amenities .popover" element
+  $('.amenities .popover input').change(function () {
+    // If the checkbox is checked, add its data-name and data-id to the amenityObj
+    if ($(this).is(':checked')) {
+      amenityObj[$(this).attr('data-name')] = $(this).attr('data-id');
+    } else if ($(this).is(':not(:checked)')) {
+      // If the checkbox is unchecked, remove its data-name from the amenityObj
+      delete amenityObj[$(this).attr('data-name')];
     }
-    const amenityList = Object.values(amenities).join(', ');
-    if (amenityList.length > 30) {
-      $('.amenities h4').text(amenityList.substring(0, 29) + '...');
+    
+    // Get the names of selected amenities, sort them, and update the content of the H4 element inside ".amenities"
+    const names = Object.keys(amenityObj);
+    $('.amenities h4').text(names.sort().join(', '));
+  });
+
+  // Call the apiStatus function to check the API status
+  apiStatus();
+}
+
+// Function to check the API status
+function apiStatus() {
+  // The API endpoint URL
+  const API_URL = `http://${HOST}:5001/api/v1/status/`;
+  
+  // Send a GET request to the API to get its status
+  $.get(API_URL, (data, textStatus) => {
+    // If the request is successful and the API status is 'OK', add the 'available' class to the element with ID 'api_status'
+    if (textStatus === 'success' && data.status === 'OK') {
+      $('#api_status').addClass('available');
     } else {
-      $('.amenities h4').text(amenityList);
-    }
-    if ($.isEmptyObject(amenities)) {
-      $('.amenities h4').html('&nbsp;');
+      // If the API status is not 'OK', remove the 'available' class from the element with ID 'api_status'
+      $('#api_status').removeClass('available');
     }
   });
-  $.ajax(
-    {
-     url: 'http://0.0.0.0:5001/api/v1/status/',
-     type: 'GET',
-     dataType: 'json',
-     success: function (response) {
-	 if (response.status === 'OK') {
-	     $('DIV#api_status').addClass('available');
-	 } else {
-	     $('DIV#api_status').removeClass('available');
-	 }
-    },
-	error: function (error) {
-	    $('DIV#api_status').removeClass('available');
-	}
-    }
-  )
-});
+}
+
