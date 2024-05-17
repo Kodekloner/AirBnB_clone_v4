@@ -2,7 +2,7 @@
 $(document).ready(init);
 
 // The host URL for the API
-const HOST = 54.237.12.189;
+const HOST = '54.237.12.189';
 
 // Initialization function
 function init() {
